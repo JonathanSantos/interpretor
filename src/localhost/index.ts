@@ -1,7 +1,19 @@
-import { io } from '../io';
-import { Interpretor } from '../ast';
+// import { io } from '../io';
 
-const code = io.getInputString();
-const interpretor = new Interpretor(code);
+import { Lexer } from '../rinha-language';
 
-interpretor.process();
+// const code = io.getInputString();
+// const executor = new Execution(new GenerateASTRinhaLanguage(), new InterpreterRinhaLanguage());
+
+// executor.process();
+// executor.execute();
+
+console.clear();
+console.log('Lexer Executation\n');
+
+console.log(
+    Lexer(
+`let a == 
+10;`
+    )
+); 
