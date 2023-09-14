@@ -1,197 +1,287 @@
-enum TokenType {
-    LET = 'LET',
-    IDENTIFIER = 'IDENTIFIER',
-    ASSIGN = 'ASSIGN',
-    EQUALS = 'EQUALS',
-    NOT_EQUALS = 'NOT_EQUALS',
-    PLUS = 'PLUS',
-    MINUS = 'MINUS',
-    DIVIDE = 'DIVIDE',
-    MULTIPLY = 'MULTIPLY',
-    MOD = 'MOD',
-    CONDITIONAL_IF = 'CONDITIONAL_IF',
-    CONDITIONAL_ELSE = 'CONDITIONAL_ELSE',
-    INTEGER = 'INTEGER',
-    FLOAT = 'FLOAT',
-    STRING = 'STRING',
-    BOOLEAN = 'BOOLEAN',
-    NIL = 'NIL',
-    SEMICOLON = 'SEMICOLON',
-    LEFT_PAREN = 'LEFT_PAREN',
-    RIGHT_PAREN = 'RIGHT_PAREN',
-    LEFT_BRACE = 'LEFT_BRACE',
-    RIGHT_BRACE = 'RIGHT_BRACE',
-    LEFT_BRACKET = 'LEFT_BRACKET',
-    RIGHT_BRACKET = 'RIGHT_BRACKET',
-    FUNCTION = 'FUNCTION',
-    AND = 'AND',
-    OR = 'OR',
+export enum Tokens {
+    // KW_INT,
+    // KW_FLOAT,
+    // KW_STRING,
+    KW_IF,
+    KW_ELSE,
+    KW_LET,
+    IDENTIFIER,
+    SB_LEFT_PAREN,
+    SB_RIGHT_PAREN,
+    SB_LEFT_BRACE,
+    SB_RIGHT_BRACE,
+    OP_SUM,
+    OP_MINUS,
+    OP_MULTIPLY,
+    OP_DIVIDE,
+    OP_ASSIGN,
+    OP_EQUALITY,
+    OP_DIFFERENCE,
+    OP_GREATER,
+    OP_GREATER_OR_EQUAL,
+    OP_LOWER,
+    OP_LOWER_OR_EQUAL,
+    OP_FUNCTION_ARROW,
+    CONDITIONAL_AND,
+    CONDITIONAL_OR,
+    SB_COMMA,
+    SB_SEMICOLON,
+    TYPE_INT,
+    // TYPE_FLOAT,
+    TYPE_STRING,
+    TYPE_FUNCTION,
+    DF_PRINT,
+    UNKNOW_VALUE
 }
 
-interface Token {
-    type: TokenType;
-    value: string | number | boolean | null;
-    line: number;
-    columnStart: number;
-    columnEnd: number;
-}
+export const Lexer = (code: string) => {
+    // const line = 0;
 
-export const Lexer = (input: string) => {
-    let position = 0;
-    let line = 0;
+    const automaton = () => {
+        debugger;
+        let position = 0;
+        let tokens: any[] = [];
 
-    const isWhiteSpace = (char: string): boolean => {
-        if (char === '\n') {
-            line++;
+        const isSpace = (char: string) => {
+            return /\s/.test(char);
         }
 
-        return char === ' ' || char === '\t' || char === '\n';
-    };
-
-    const readWhile = (predicate: (char: string) => boolean): string => {
-        let result = '';
-
-        while (position < input.length && predicate(input[position])) {
-            result += input[position];
-            position++;
+        const isOperator = (char: string) => {
+            return /[-+=*\/!><]/.test(char);
         }
 
-        return result;
-    };
+        const isAlfa = (char: string) => {
+            return /[a-zA-Z]/.test(char);
+        };
 
-    const isInteger = (char: string) => {
-        return /\d/.test(char);
-    };
+        const isNumeric = (char: string) => {
+            return /[0-9]/.test(char);
+        };
 
-    const isAlpha = (char: string) => {
-        return /[a-zA-Z]/.test(char);
-    };
+        const isSymbol = (char: string) => {
+            return /[)(,;}{]/.test(char);
+        };
 
-    const isEquals = (char: string) => {
-        return /=/.test(char);
-    };
+        const isString = (char: string) => {
+            return /"/.test(char);
+        };
 
-    const isString = (char: string) => {
-        return /"/.test(char);
-    };
+        const isConditional = (char: string) => {
+            console.log(char);
+            return /[|&]/.test(char);
+        };
 
-    const readNextToken = (): Token | null => {
-        if (position >= input.length) {
-            return null;
-        }
+        while (position < code.length) {
+            let oldTokenLength = tokens.length;
 
-        const currentChar = input[position];
-
-        if (isWhiteSpace(currentChar)) {
-            position++;
-            return readNextToken();
-        }
-
-        if (isAlpha(currentChar)) {
-            const value = readWhile(isAlpha);
-
-            if (value === 'let') {
-                return {
-                    type: TokenType.LET,
-                    value,
-                    line,
-                    columnStart: position - value.length,
-                    columnEnd: position
-                }
+            if (isSpace(code[position])) {
+                position++;
+                continue;
             }
 
-            if (value === 'if') {
-                return {
-                    type: TokenType.CONDITIONAL_IF,
-                    value,
-                    line,
-                    columnStart: position - value.length,
-                    columnEnd: position
+            if (isOperator(code[position])) {
+                let result = code[position];
+                position++;
+
+                // Special Operators == or !=
+                while (/^(==|!=)$/.test(result + code[position]) && position < code.length) {
+                    result += code[position];
+                    position++;
                 }
+
+                // Special Compare >= or <=
+                while (/^(>=|<=)$/.test(result + code[position]) && position < code.length) {
+                    result += code[position];
+                    position++;
+                }
+
+                // Special Compare >= or <=
+                while (/^=>$/.test(result + code[position]) && position < code.length) {
+                    result += code[position];
+                    position++;
+                }
+
+                if (result === '=') {
+                    tokens.push(Tokens.OP_ASSIGN);
+                } else if (result === '*') {
+                    tokens.push(Tokens.OP_MULTIPLY);
+                } else if (result === '+') {
+                    tokens.push(Tokens.OP_SUM);
+                } else if (result === '-') {
+                    tokens.push(Tokens.OP_MINUS);
+                }  else if (result === '/') {
+                    tokens.push(Tokens.OP_DIVIDE);
+                } else if (result === '==') {
+                    tokens.push(Tokens.OP_EQUALITY);
+                } else if (result === '!=') {
+                    tokens.push(Tokens.OP_DIFFERENCE);
+                } else if (result === '>') {
+                    tokens.push(Tokens.OP_GREATER);
+                } else if (result === '>=') {
+                    tokens.push(Tokens.OP_GREATER_OR_EQUAL);
+                } else if (result === '<') {
+                    tokens.push(Tokens.OP_LOWER);
+                } else if (result === '<=') {
+                    tokens.push(Tokens.OP_LOWER_OR_EQUAL);
+                } else if (result === '=>') {
+                    tokens.push(Tokens.OP_FUNCTION_ARROW);
+                }
+
+                continue;
             }
 
-            return {
-                type: TokenType.IDENTIFIER,
-                value,
-                line,
-                columnStart: position - value.length,
-                columnEnd: position
-            };
-        }
+            if (isAlfa(code[position])) {
+                let result = code[position];
+                position++;
 
-        if (isInteger(currentChar)) {
-            const value = readWhile(isInteger);
+                while (/^[a-zA-Z]+[a-zA-Z0-9]*$/.test(result + code[position]) && position < code.length) {
+                    result += code[position];
+                    position++;
+                }
 
-            return {
-                type: TokenType.INTEGER,
-                value: parseInt(value),
-                line,
-                columnStart: position - value.length,
-                columnEnd: position
-            };
-        }
+                // if (result === 'int') {
+                //     tokens.push(Tokens.KW_INT);
+                // } 
+                
+                // else if (result === 'float') {
+                //     tokens.push(Tokens.KW_FLOAT);
+                // } else 
+                
+                if (result === 'fn') {
+                    tokens.push(Tokens.TYPE_FUNCTION);
+                } else if (result === 'let') {
+                    tokens.push(Tokens.KW_LET);
+                } else if (result === 'else') {
+                    tokens.push(Tokens.KW_ELSE);
+                } else if (result === 'print') {
+                    tokens.push(Tokens.DF_PRINT);
+                } else {
+                    tokens.push([Tokens.IDENTIFIER, result]);
+                }
 
-        if (currentChar === '=') {
-            const value = readWhile(isEquals);
+                continue;
+            }
 
-            position++;
+            if (isNumeric(code[position])) {
+                let result = code[position];
+                position++;
 
-            if (value === '==') {
-                return {
-                    type: TokenType.EQUALS,
-                    value,
-                    line,
-                    columnStart: position - value.length,
-                    columnEnd: position,
+                while (/^[0-9]+$/.test(result + code[position]) && position < code.length) {
+                    result += code[position];
+                    position++;
+                }
+
+                // check is can be a float
+                // if (code[position] === '.' && isNumeric(code[position + 1])) {
+                //     result += code[position];
+                //     position++;
+
+                //     result += code[position];
+                //     position++;
+
+                //     while (/^[0-9]+\.[0-9]+$/.test(result + code[position]) && position < code.length) {
+                //         result += code[position];
+                //         position++;
+                //     }
+
+                //     tokens.push([Tokens.TYPE_FLOAT, parseFloat(result)]);
+                // } else {
+                    tokens.push([Tokens.TYPE_INT, parseInt(result)]);
+                // }
+
+                continue;
+            }
+
+            if (isSymbol(code[position])) {
+                let result = code[position];
+                position++;
+
+                if (result === ',') {
+                    tokens.push(Tokens.SB_COMMA);
+                } else if (result === ';') {
+                    tokens.push(Tokens.SB_SEMICOLON);
+                } else if (result === '(') {
+                    tokens.push(Tokens.SB_LEFT_PAREN);
+                } else if (result === ')') {
+                    tokens.push(Tokens.SB_RIGHT_PAREN);
+                } else if (result === '{') {
+                    tokens.push(Tokens.SB_LEFT_BRACE);
+                } else if (result === '}') {
+                    tokens.push(Tokens.SB_RIGHT_BRACE);
+                }
+
+                continue;
+            }
+
+            if (isString(code[position])) {
+                let result = code[position];
+                position++;
+                let isFinalExecution = false;
+
+                const validStringFormat = (value: string, code: string, position: number, result: string) => {
+                    if (value === '"' && result.length === 1) {
+                        return true;
+                    }
+                    
+                    if (value === '"' && result.length > 1 && code[position - 1] === '\\') {
+                        
+                        return true;
+                    }
+
+                    if (value !== '"') {
+                        return true;
+                    }
+
+                    if (value === '"') {
+                        return false;
+                    }
                 };
+
+                while (validStringFormat(code[position], code, position, result) && position < code.length) {
+                    result += code[position];
+                    position++;
+                }
+
+                result += '"';
+                position++;
+
+                tokens.push([Tokens.TYPE_STRING, result]);
+
+                continue;
             }
 
-            return {
-                type: TokenType.ASSIGN,
-                value: '=',
-                line,
-                columnStart: position,
-                columnEnd: position
-            };
-        }
-      
-        if (currentChar === '+') {
-            position++;
+            if (isConditional(code[position])) {
+                let result = code[position];
+                position++;
 
-            return {
-                type: TokenType.PLUS,
-                value: '+',
-                line,
-                columnStart: position,
-                columnEnd: position
-            };
-        }
-      
-        if (currentChar === ';') {
-            position++;
+                while (/^(&&|\|\|)$/.test(result + code[position]) && position < code.length) {
+                    result += code[position];
+                    position++;
+                }
 
-            return {
-                type: TokenType.SEMICOLON,
-                value: ';',
-                line,
-                columnStart: position,
-                columnEnd: position
-            };
-        }
+                if (result === '&&') {
+                    tokens.push(Tokens.CONDITIONAL_AND);
+                } else if (result === '||') {
+                    tokens.push(Tokens.CONDITIONAL_OR);
+                }
 
-        return null;
-    };
+                continue;
+            }
 
-    const tokenize = (): Token[] => {
-        const tokens: Token[] = [];
-        let token: Token | null;
+            if (position < code.length && /\S/.test(code[position])) {
+                tokens.push([Tokens.UNKNOW_VALUE, code[position]]);
 
-        while ((token = readNextToken())) {
-            tokens.push(token);
+                position++;
+                continue;
+            }
+
+            if (oldTokenLength === tokens.length) {
+                break;
+            }
         }
 
         return tokens;
     };
 
-    return tokenize();
+    return automaton();
 };
