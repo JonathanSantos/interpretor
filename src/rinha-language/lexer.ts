@@ -34,7 +34,8 @@ export enum Tokens {
     UNKNOW_VALUE
 }
 
-type ILexer = (code: string) => ([Tokens.TYPE_INT, number] | [Tokens.TYPE_STRING, string] | [Tokens.IDENTIFIER, string] | Tokens)[];
+type ILexer = (code: string) => (Tokens | [Tokens.TYPE_INT, number] | [Tokens.TYPE_STRING | Tokens.IDENTIFIER, string])[];
+export type ILexerReturnType = ReturnType<ILexer>;
 
 export const Lexer: ILexer = (code) => {
     // const line = 0;
