@@ -149,7 +149,9 @@ export const Lexer = (code: string) => {
                 
                 if (result === 'fn') {
                     tokens.push(Tokens.TYPE_FUNCTION);
-                } else if (result === 'let') {
+                } else if (result === 'if') {
+                    tokens.push(Tokens.KW_IF);
+                }  else if (result === 'let') {
                     tokens.push(Tokens.KW_LET);
                 } else if (result === 'else') {
                     tokens.push(Tokens.KW_ELSE);
